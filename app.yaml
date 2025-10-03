@@ -1,0 +1,63 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: first-app-dr
+  namespace: staging
+spec:
+  host: first-app
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+  subsets:
+  - name: v1
+    labels:
+      app: first-app
+      version: v1
+  - name: v2
+    labels:
+      app: first-app
+      version: v2
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: first-app-vs
+  namespace: staging
+spec:
+  hosts:
+  - first-app
+  - app.example.com   
+  gateways:
+  - first-app-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: first-app
+        subset: v1
+      weight: 70
+    - destination:
+        host: first-app
+        subset: v2
+      weight: 30
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: first-app-gateway
+  namespace: staging
+spec:
+  selector:
+    istio: ingressgateway   # use Istio's default ingress gateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "app.example.com"   # replace with your domain
+---

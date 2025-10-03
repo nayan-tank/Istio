@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name:  dev
+  labels:
+    istio-injection: enabled
+
+---
+
+istioctl kube-inject -f namespace.yaml | kubectl apply -f -
+istioctl kube-inject -f manifest.yaml | kubectl apply -f -
+
+curl --header "Host: app.example.com" http://public-ip/hello
